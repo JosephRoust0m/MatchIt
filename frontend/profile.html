@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Resume Evaluator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script> 
+    <body> 
+        <header>
+            <nav>
+                <ul style="list-style: none; display: flex; justify-content: center; padding: 0; margin: 10px 0;" id="navbar">
+                    <li style="margin: 0 15px;">
+                        <a href="jobs.html" style="text-decoration: none; color: white; font-weight: bold;">Job Opportunities</a>
+                    </li>
+                    <li style="margin: 0 15px;">
+                        <a href="compatibility.html" style="text-decoration: none; color: white; font-weight: bold;">Compatibility</a>
+                    </li>
+                    <li style="margin: 0 15px;" id="log-out">
+                        <a href="signin.html" style="text-decoration: none; color: white; font-weight: bold;">Log Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+        <main >
+            
+            <form id="resumeForm" onsubmit ="handleFormSubmit(event)" style="margin-top: 2%; margin-left: auto; margin-right: auto; width: 50%;">
+                <label for="resume">Resume PDF:</label>
+                <input type="file" name="file" id="resume" required>
+                <input type="submit" value="Upload" class="upload-button">
+            </form>
+            </form>
+        </main>
+
+        <hr style="border: 1px solid #ccc; margin: 20px 0;">
+        <h2 style="text-align: center; color: #333;">Saved Jobs</h2>
+            <ul class="job-list">
+                
+            </ul>
+        </main>
+    </body>
+    <footer>
+        <p>&copy; <span id="currentYear"></span> Job Portal</p>
+        <script>
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        </script>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem("token"); 
+            const response = await fetch('http://127.0.0.1:8080/savedinfo', {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            console.log(data["error"]);
+             console.log(data["uploaded_time"]);
+            const formContainer = document.querySelector('main form');
+            formContainer.innerHTML = ''; // Clear the existing form
+
+            const jobList = document.querySelector('.job-list');
+            jobList.innerHTML = '';  // Clear existing job listings
+
+           
+            // Loop through the array and create job listings dynamically
+            if (data["error"] == 'No saved jobs' && data["error2"] == 'No Resume Found') {
+                console.log('1');
+                const noJobsItem = document.createElement('li');
+                noJobsItem.textContent = 'No saved jobs found.';
+                noJobsItem.style.textAlign = 'center';
+                noJobsItem.style.color = '#555';
+                noJobsItem.style.fontStyle = 'italic';
+                noJobsItem.style.margin = '20px 0';
+                noJobsItem.style.color = 'black';
+                jobList.appendChild(noJobsItem);
+
+                            
+            formContainer.innerHTML = `
+            <form id="resumeForm" onsubmit ="handleFormSubmit(event)" style="margin-top: 2%;  width: 50%;">
+            <label for="resume">Resume PDF:</label>
+            <input type="file" name="file" id="resume" required><br><br>
+            <input type="submit" value="Upload" class="upload-button">
+            </form>
+            `;
+            }
+        else if (data["error"] === 'No saved jobs' &&data.resume) {
+            console.log('2');
+                const noJobsItem = document.createElement('li');
+                noJobsItem.textContent = 'No saved jobs found.';
+                noJobsItem.style.textAlign = 'center';
+                noJobsItem.style.color = '#555';
+                noJobsItem.style.fontStyle = 'italic';
+                noJobsItem.style.margin = '20px 0';
+                noJobsItem.style.color = 'black';
+                jobList.appendChild(noJobsItem);
+
+                    const container = document.createElement('div');
+                    container.style.display = 'flex';
+                    container.style.justifyContent = 'space-between';
+                    container.style.marginTop = '20px';
+
+                    // Create the "Upload New Resume" section
+                    const uploadNewResume = document.createElement('div');
+                    uploadNewResume.style.width = '48%';
+                    uploadNewResume.innerHTML = `
+                        <h3 style="text-align: center;">Upload New Resume</h3>
+                        <form id="resumeForm" onsubmit ="handleFormSubmit(event)" style=" margin-left: auto; margin-right: auto; width: 50%;">
+                        <label for="resume">Resume PDF:</label>
+                        <input type="file" name="file" id="resume" required>
+                        <input type="submit" value="Upload" class="upload-button">
+                        </form>
+                    `;
+
+                    // Create the "Use Old Resume" section
+                    const useOldResume = document.createElement('div');
+                    useOldResume.style.width = '48%';
+                    useOldResume.style.textAlign = 'center';
+                    useOldResume.innerHTML = `
+                        <h3>Keep Old Resume</h3>
+                        <p>Uploaded at: ${new Date(data.uploaded_time).toLocaleString()}</p>
+                       
+                    `;
+
+                    // Append both sections to the container
+                    container.appendChild(uploadNewResume);
+                    container.appendChild(useOldResume);
+
+                    // Append the container to the main element
+                    formContainer.parentElement.appendChild(container);
+            }
+            else if (data["job_list"] && data["error2"] === 'No Resume Found') {
+                console.log('3');
+            const job_data=data["job_list"];
+            job_data.forEach(job => {
+                const jobItem = document.createElement('li');
+                jobItem.classList.add('job-item');
+
+                jobItem.innerHTML = `
+                    <h2>${job.title}</h2>
+                    <p><strong>Company:</strong> ${job.organization}</p>
+                    <p><strong>Location:</strong> ${job.location}</p>
+                    <p><strong>Posted on:</strong> ${job.date_posted}</p>
+                    <p><strong>Deadline:</strong> ${job.deadline}</p>
+                    <p style="margin: 10px 0;"><a href="${job.url}" target="_blank" style="color: black; font-weight: bold;">View Job</a></p>
+                    <button class="unsave-job" id="${job.specific_id}" style="background-color: black; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; width: 25%; display: block; margin: 0 auto;">Remove Job</button>
+                `;
+
+                jobList.appendChild(jobItem);
+
+    const unsaveButtons = document.getElementsByClassName('unsave-job');
+    Array.from(unsaveButtons).forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const jobId = event.target.id;
+
+            console.log(jobId);
+
+            const response = await fetch('http://127.0.0.1:8080/unsave', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ jobId: jobId }) // Ensure the key matches the backend's expected parameter
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    });
+
+    });
+            formContainer.innerHTML = `
+            <form id="resumeForm" onsubmit ="handleFormSubmit(event)" style="margin-top: 2%;  width: 50%;">
+            <label for="resume">Resume PDF:</label>
+            <input type="file" name="file" id="resume" required><br><br>
+            <input type="submit" value="Upload" class="upload-button">
+            </form>
+            `;
+     }
+     else{
+    const job_data=data["job_list"];
+            job_data.forEach(job => {
+                const jobItem = document.createElement('li');
+                jobItem.classList.add('job-item');
+
+                jobItem.innerHTML = `
+                    <h2>${job.title}</h2>
+                    <p><strong>Company:</strong> ${job.organization}</p>
+                    <p><strong>Location:</strong> ${job.location}</p>
+                    <p><strong>Posted on:</strong> ${job.date_posted}</p>
+                    <p><strong>Deadline:</strong> ${job.deadline}</p>
+                    <p style="margin: 10px 0;"><a href="${job.url}" target="_blank" style="color: black; font-weight: bold;">View Job</a></p>
+                    <button class="unsave-job" id="${job.specific_id}" style="background-color: black; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; width: 25%; display: block; margin: 0 auto;">Remove Job</button>
+                `;
+
+                jobList.appendChild(jobItem);
+
+    const unsaveButtons = document.getElementsByClassName('unsave-job');
+    Array.from(unsaveButtons).forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const jobId = event.target.id;
+
+            console.log(jobId);
+
+            const response = await fetch('http://127.0.0.1:8080/unsave', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ jobId: jobId }) // Ensure the key matches the backend's expected parameter
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    });
+
+    });
+        const container = document.createElement('div');
+                    container.style.display = 'flex';
+                    container.style.justifyContent = 'space-between';
+                    container.style.marginTop = '20px';
+
+                    // Create the "Upload New Resume" section
+                    const uploadNewResume = document.createElement('div');
+                    uploadNewResume.style.width = '48%';
+                    uploadNewResume.innerHTML = `
+                        <h3 style="text-align: center;">Upload New Resume</h3>
+                        <form id="resumeForm" onsubmit ="handleFormSubmit(event)" style="margin-top: 2%; margin-left: auto; margin-right: auto; width: 50%;">
+                        <label for="resume">Resume PDF:</label>
+                        <input type="file" name="file" id="resume" required>
+                        <input type="submit" value="Upload" class="upload-button">
+                        </form>
+                    `;
+
+                    // Create the "Use Old Resume" section
+                    const useOldResume = document.createElement('div');
+                    useOldResume.style.width = '48%';
+                    useOldResume.style.textAlign = 'center';
+                    useOldResume.innerHTML = `
+                        <h3>Keep Old Resume</h3>
+                        <p>Uploaded at: ${new Date(data.time_uploaded).toLocaleString()}</p>
+                        
+                    `;
+
+                    // Append both sections to the container
+                    container.appendChild(uploadNewResume);
+                    container.appendChild(useOldResume);
+
+                    // Append the container to the main element
+                    formContainer.parentElement.appendChild(container);
+        
+     }
+
+});
+
+
+    document.getElementById('log-out')?.addEventListener('click', async (event) => {
+            event.preventDefault(); 
+            localStorage.removeItem('token'); 
+            window.location.href = 'signin.html'; 
+        });
+
+         async function handleFormSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            const fileInput = document.getElementById('resume');
+            const file = fileInput.files[0]; // Get the selected file
+
+            if (!file) {
+                alert("Please upload a PDF file.");
+                return;
+            }
+            
+            // Extract text from the PDF file
+            const pdfText = await extractTextFromPDF(file);
+            
+            // Prepare the data to send
+            const dataToSend = {
+                file_content: pdfText
+            };
+
+            console.log('Data to send:', dataToSend);
+
+            const token = localStorage.getItem("token"); 
+            const response = await fetch('http://127.0.0.1:8080/uploadresume', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(dataToSend)
+            });
+            if (response.ok) {
+                alert("Resume uploaded successfully!");
+                window.location.reload();
+            } else {
+                const errorData = await response.json();
+                alert("Error: " + errorData.message);
+            }
+            
+        }
+
+        async function extractTextFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer(); // Convert file to ArrayBuffer
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise; // Load the PDF
+
+            let pdfText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i); // Get each page
+                const textContent = await page.getTextContent(); // Extract text
+                textContent.items.forEach((item) => {
+                    pdfText += item.str + ' '; // Combine text
+                });
+            }
+
+            return pdfText.trim(); // Return extracted text
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background-color: #8A2BE2;
+            color: white;
+        }
+        .job-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        
+        .job-item {
+            background-color: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #9400D3;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .job-item h2 {
+            color: black;
+        }
+        
+        .job-item p {
+            color: #333;
+        }
+        
+        .job-item:hover {
+            background-color: #f9f9f9;
+            border-left-color: black;
+            transform: scale(1.05);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            background-color: #9400D3;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+
+
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            position: relative;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+        }
+
+        input[type="submit"] {
+            width: 25%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background: black;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: block;
+            margin: 10px auto 0 auto;
+        }
+
+        input[type="submit"]:hover {
+            background: darkgray;
+        }
+    </style>
+</head>
+
+</html>
