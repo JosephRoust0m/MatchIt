@@ -74,26 +74,30 @@
 
         async function handleFormSubmit(event) {
             event.preventDefault(); // Prevent default form submission
+            const useCurrentResumeCheckbox = document.getElementById('use_current_resume');
             
-            const fileInput = document.getElementById('resume');
-            const file = fileInput.files[0]; // Get the selected file
+        if(useCurrentResumeCheckbox){
+            if(useCurrentResumeCheckbox.checked ){  
+
+            const token = localStorage.getItem("token");
+            const response = await fetch('http://127.0.0.1:8080/savedinfo', {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            const data = await response.json();
+            const resume = data.resume;
+
             const jobDescription = document.getElementById('job_description').value;
 
-            if (!file) {
-                alert("Please upload a PDF file.");
-                return;
-            }
-            
-            // Extract text from the PDF file
-            const pdfText = await extractTextFromPDF(file);
-            
-            // Prepare the data to send
             const dataToSend = {
-                file_content: pdfText, // Send the extracted text
+                file_content: resume, 
                 job_description: jobDescription
             };
 
-            console.log('Data to send:', dataToSend);
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'http://127.0.0.1:8080/compatibility', true);
@@ -112,8 +116,48 @@
             };
             console.log(JSON.stringify(dataToSend));
             xhr.send(JSON.stringify(dataToSend));
-            
         }
+    }
+        else{
+            const fileInput = document.getElementById('resume');
+            const file = fileInput.files[0]; // Get the selected file
+            const jobDescription = document.getElementById('job_description').value;
+
+            if (!file) {
+                alert("Please upload a PDF file.");
+                return;
+            }
+            
+            // Extract text from the PDF file
+            const pdfText = await extractTextFromPDF(file);
+            
+            // Prepare the data to send
+            const dataToSend = {
+                file_content: pdfText, // Send the extracted text
+                job_description: jobDescription
+            };
+
+            console.log('Data to send2:', dataToSend);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'http://127.0.0.1:8080/compatibility', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+             // Send as JSON
+            xhr.onload = function() {
+                console.log(xhr.status);
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    const match= Number(response.match_percentage);
+                    console.log(xhr.responseText);
+                    document.getElementById('result').innerText = 'Match Percentage: ' + match.toFixed(2)+ '%';
+                } else {
+                    document.getElementById('result').innerText = 'Error: ' + xhr.statusText;
+                }
+            };
+            console.log(JSON.stringify(dataToSend));
+            xhr.send(JSON.stringify(dataToSend));
+        }
+    }
 
         async function extractTextFromPDF(file) {
             const arrayBuffer = await file.arrayBuffer(); // Convert file to ArrayBuffer
@@ -130,6 +174,48 @@
 
             return pdfText.trim(); // Return extracted text
         }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem("token");
+            if(token>0){
+            const response = await fetch('http://127.0.0.1:8080/savedinfo', {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            const formContainer = document.querySelector('form');
+            formContainer.innerHTML = ''; // Clear the existing form
+            if(data.resume){
+                formContainer.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ccc;">
+                        <!-- Left side: Existing form -->
+                        <div style="flex: 1; margin-right: 20px;">
+                            <label for="resume">Resume PDF:</label>
+                            <input type="file" name="file" id="resume" style="border: 1px solid #ccc;"><br><br>
+
+                            <!-- Text area under the left side -->
+                            <label for="job_description">Job Description:</label>
+                            <textarea name="job_description" id="job_description" rows="10" cols="30" required style="border: 1px solid #ccc;"></textarea><br><br>
+                        </div>
+
+                        <!-- Right side: Use current resume -->
+                        <div style="flex: 1;">
+                            <label for="use_current_resume" style="display: flex; align-items: center;">
+                                <input type="checkbox" id="use_current_resume" name="use_current_resume" style="margin-right: 10px;">
+                                Use Current Resume (Uploaded on: ${new Date(data.uploaded_time).toLocaleString()})
+                            </label>
+                        </div>
+                    </div>
+                    <input type="submit" value="Test Compatibility" style="margin-top: 20px; border: 1px solid #ccc;">
+                
+                `;
+            }
+        }
+            });
     </script>
 
     <style>
