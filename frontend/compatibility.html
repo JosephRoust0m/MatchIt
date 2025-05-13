@@ -76,8 +76,7 @@
             event.preventDefault(); // Prevent default form submission
             const useCurrentResumeCheckbox = document.getElementById('use_current_resume');
             
-        if(useCurrentResumeCheckbox){
-            if(useCurrentResumeCheckbox.checked ){  
+            if(useCurrentResumeCheckbox && useCurrentResumeCheckbox.checked ){  
 
             const token = localStorage.getItem("token");
             const response = await fetch('http://127.0.0.1:8080/savedinfo', {
@@ -117,7 +116,7 @@
             console.log(JSON.stringify(dataToSend));
             xhr.send(JSON.stringify(dataToSend));
         }
-    }
+    
         else{
             const fileInput = document.getElementById('resume');
             const file = fileInput.files[0]; // Get the selected file
@@ -157,7 +156,8 @@
             console.log(JSON.stringify(dataToSend));
             xhr.send(JSON.stringify(dataToSend));
         }
-    }
+    
+}
 
         async function extractTextFromPDF(file) {
             const arrayBuffer = await file.arrayBuffer(); // Convert file to ArrayBuffer
