@@ -6,14 +6,17 @@ import os
 import psycopg2
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from datetime import datetime
+from dotenv import load_dotenv
 
 # Database connection
+load_dotenv()
+
 conn = psycopg2.connect(
-        host="localhost",
-        database="matchIt",
-        user="postgres",
-        password="12345678",
-        port="5433"
+    host=os.getenv("DB_HOST"),
+    database=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    port=os.getenv("DB_PORT")
 )
 cur = conn.cursor()
 
