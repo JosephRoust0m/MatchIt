@@ -1,26 +1,16 @@
 import numpy as np
-import math
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer, util
+
+# Load a pretrained Sentence-BERT model
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def compare_requirements(resume_text, job_description):
-    # TF-IDF Vectorization
-    tfidf_vectorizer = TfidfVectorizer()
-    tfidf_matrix = tfidf_vectorizer.fit_transform([resume_text, job_description])
+    # Encode the resume and job description into embeddings
+    resume_embedding = model.encode(resume_text)
+    job_embedding = model.encode(job_description)
 
-    # Convert sparse matrices to dense numpy arrays
-    vector1 = tfidf_matrix[0].toarray()[0]
-    vector2 = tfidf_matrix[1].toarray()[0]
+    # Compute cosine similarity using Sentence-BERT embeddings
+    similarity_score = util.cos_sim(resume_embedding, job_embedding)
 
-    # Compute cosine similarity
-    similarity = cosine_similarity(vector1, vector2)
-    return round(similarity * 100, 2)
+    return round(similarity_score.item() * 100, 2)
 
-def cosine_similarity(vectorA, vectorB):
-    dot_product = np.dot(vectorA, vectorB)
-    magnitudeA = math.sqrt(np.dot(vectorA, vectorA))
-    magnitudeB = math.sqrt(np.dot(vectorB, vectorB))
-
-    if magnitudeA*magnitudeB == 0:
-        return 0.0  # Avoid division by zero
-
-    return dot_product / (magnitudeA * magnitudeB)

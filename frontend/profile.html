@@ -20,11 +20,11 @@
             </nav>
         </header>
         <main >
-            
+            <div id="advice" >
+                <strong>Advice:</strong> For best accuracy, your resume should only contain your <b>education</b> and <b>skills</b>. Work experience is not required for compatibility evaluation.
+            </div>
             <form id="resumeForm" onsubmit ="handleFormSubmit(event)" style="margin-top: 2%; margin-left: auto; margin-right: auto; width: 50%;">
-                <label for="resume">Resume PDF:</label>
-                <input type="file" name="file" id="resume" required>
-                <input type="submit" value="Upload" class="upload-button">
+
             </form>
             </form>
         </main>
@@ -54,7 +54,7 @@
             });
 
             const data = await response.json();
-            console.log(data["error"]);
+            console.log(data["jobs_saved"]);
              console.log(data["uploaded_time"]);
             const formContainer = document.querySelector('main form');
             formContainer.innerHTML = ''; // Clear the existing form
@@ -129,9 +129,9 @@
                     // Append the container to the main element
                     formContainer.parentElement.appendChild(container);
             }
-            else if (data["job_list"] && data["error2"] === 'No Resume Found') {
+            else if (data["jobs_saved"] && data["error2"] === 'No Resume Found') {
                 console.log('3');
-            const job_data=data["job_list"];
+            const job_data=data["jobs_saved"];
             job_data.forEach(job => {
                 const jobItem = document.createElement('li');
                 jobItem.classList.add('job-item');
@@ -184,7 +184,7 @@
             `;
      }
      else{
-    const job_data=data["job_list"];
+    const job_data=data["jobs_saved"];
             job_data.forEach(job => {
                 const jobItem = document.createElement('li');
                 jobItem.classList.add('job-item');
@@ -251,7 +251,7 @@
                     useOldResume.style.textAlign = 'center';
                     useOldResume.innerHTML = `
                         <h3>Keep Old Resume</h3>
-                        <p>Uploaded at: ${new Date(data.time_uploaded).toLocaleString()}</p>
+                        <p>Uploaded at: ${new Date(data.uploaded_time).toLocaleString()}</p>
                         
                     `;
 
@@ -437,6 +437,22 @@
         input[type="submit"]:hover {
             background: darkgray;
         }
+        #advice{
+            transition: transform 0.2s;
+            background-color: white;
+            border-left: 5px solid #8A2BE2;
+            padding: 16px;
+            margin: 24px auto 0 auto;
+            max-width: 600px;
+            border-radius: 8px;
+            color: #333;
+            }
+        #advice:hover {
+                transform: scale(1.03);
+                box-shadow: 0 4px 16px rgba(138,43,226,0.15);
+                border-left-color: black;
+        }
+
     </style>
 </head>
 

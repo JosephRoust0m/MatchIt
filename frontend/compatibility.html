@@ -11,13 +11,6 @@
             </nav>
         </header>
         <form onsubmit="handleFormSubmit(event)" style="margin-top: 2%; margin-left: auto; margin-right: auto; width: 50%;">
-            <label for="resume">Resume PDF:</label>
-            <input type="file" name="file" id="resume" required><br><br>
-            
-            <label for="job_description">Job Description:</label>
-            <textarea name="job_description" id="job_description" rows="10" cols="50" required></textarea><br><br>
-            
-            <input type="submit" value="Test Compatibility">
         </form>
         <div class="rows" id="result">
            
@@ -177,7 +170,8 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem("token");
-            if(token>0){
+            console.log(typeof(token))
+            if(typeof(token)=="string"){
             const response = await fetch('http://127.0.0.1:8080/savedinfo', {
                 method: 'GET',
                 headers: { 
@@ -214,6 +208,19 @@
                 
                 `;
             }
+        }
+        else{
+            const formContainer = document.querySelector('form');
+            formContainer.innerHTML = ''; // Clear the existing form
+            formContainer.innerHTML = `
+            <label for="resume">Resume PDF:</label>
+            <input type="file" name="file" id="resume" required><br><br>
+            
+            <label for="job_description">Job Description:</label>
+            <textarea name="job_description" id="job_description" rows="10" cols="50" required></textarea><br><br>
+            
+            <input type="submit" value="Test Compatibility">
+            `;
         }
             });
     </script>
