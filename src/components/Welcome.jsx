@@ -16,7 +16,7 @@ function Welcome() {
         clearInterval(interval);
         setTypingDone(true);
       }
-    }, 70);
+    }, 150);
     return () => clearInterval(interval);
   }, []);
 
