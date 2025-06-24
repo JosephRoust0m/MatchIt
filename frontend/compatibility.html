@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Resume Evaluator</title>
+    <title>MatchIt</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script> 
     <body> 
         <header>
@@ -16,6 +16,12 @@
            
         </div>
     </body>
+    <footer>
+        <p>&copy; <span id="currentYear"></span> Job Portal</p>
+        <script>
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        </script>
+    </footer>
     <script>
         function isAuthenticated() {
             return localStorage.getItem("token") !== null;
@@ -318,7 +324,12 @@
             background-color: #8A2BE2;
             color: white;
         }
-        
+        footer {
+            background-color: #9400D3;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
     </style>
 </head>
 

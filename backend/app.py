@@ -7,34 +7,30 @@ import psycopg2
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from datetime import datetime
 from dotenv import load_dotenv
+import os
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-
+import certifi
 import bcrypt
-
-# MongoDB connection
 
 load_dotenv()
 
 MONGO_URL = os.getenv("MONGO_URL")
+ca = certifi.where()
 
-mongo_client = MongoClient(MONGO_URL,server_api=ServerApi('1'))
+mongo_client = MongoClient(MONGO_URL)
 db = mongo_client["matchit"]
 users_col = db["users"]
 jobs_col = db["jobs"]
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = "your_secret_key"
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 jwt = JWTManager(app)
-
-@app.route('/')
-def home():
-    return render_template('/public/jobs.html')
 
 
 @app.route('/jobs', methods=['POST'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def jobs():
     try:
         data = request.get_json()
@@ -52,7 +48,7 @@ def jobs():
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @app.route('/compatibility', methods=['POST'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def compatibility():
     try:
         data = request.get_json()
@@ -66,13 +62,14 @@ def compatibility():
         return jsonify({"error": "An error occurred while processing the request"}), 500
 
 @app.route('/signin', methods=['POST'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def signin():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
+
     user = users_col.find_one({"email": email})
-    print(user)
+    #print(user)
     if user:
         db_password = user.get("password")
         if db_password and bcrypt.checkpw(password.encode('utf-8'), db_password):
@@ -84,7 +81,7 @@ def signin():
         return jsonify({"status": "error", "message": "User not found, please sign up"}), 401
 
 @app.route('/signup', methods=['POST'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def signup():
     data = request.get_json()
     email = data.get('email')
@@ -109,7 +106,7 @@ def signup():
     return jsonify({"status": "success", "message": "User registered successfully"}), 201
 
 @app.route('/save', methods=['POST'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def saveJob():
     data = request.get_json()
     title = data.get('title')
@@ -149,7 +146,7 @@ def saveJob():
         return jsonify({"status": "error", "message": "Job already exists"}), 401
 
 @app.route('/savedinfo', methods=['GET'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def getSavedInfo():
     try:
         user_email = request.headers.get("Authorization").split(" ")[1] if "Authorization" in request.headers else None
@@ -190,7 +187,7 @@ def getSavedInfo():
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 @app.route('/unsave', methods=['POST'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def unsaveJob():
     data = request.get_json()
     jobId = data.get('jobId')
@@ -206,7 +203,7 @@ def unsaveJob():
         return jsonify({"error": "Job not found in saved jobs"}), 404
 
 @app.route('/uploadresume', methods=['POST'])
-@cross_origin(origin='127.0.0.1', ports=[3000, 3001])
+@cross_origin(origin='localhost', ports=[3000, 3001])
 def saveResume():
     data = request.get_json()
     resume = data.get('file_content')
@@ -243,4 +240,4 @@ def removeId(jobId, saved_jobs):
 # Run Flask app
 if __name__ == '__main__':
     PORT = 8080
-    app.run(host='127.0.0.1', port=PORT,debug=True)
+    app.run(host='localhost', port=PORT,debug=True)

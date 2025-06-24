@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In / Sign Up</title>
+    <title>MatchIt</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-logo">MatchIt</div>
-        <ul class="nav-links">
-            <li><a href="jobs.html">Check Jobs</a></li>
-        </ul>
+    <nav class="navbar" >
+                  <ul style="list-style: none; display: flex; justify-content: center; align-items: center; padding: 0; margin: 10px 0; width: 100%;" >
+                <li style="margin: 0 15px; display: inline-block;">
+                    <a href="jobs.html" style="text-decoration: none; color: white; font-weight: bold;">Job Opportunities</a>
+                </li>
+                <li style="margin: 0 15px; display: inline-block;" id="log-out">
+                    <a href="compatibility.html" style="text-decoration: none; color: white; font-weight: bold;">Compatibility</a>
+                </li>
+                </ul>
     </nav>
 
     <div class="container">
@@ -49,8 +53,11 @@
         </div>
     </div>
 
-    <footer class="footer">
-        &copy; 2025
+    <footer>
+        <p>&copy; <span id="currentYear"></span> Job Portal</p>
+        <script>
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        </script>
     </footer>
 
     <script>
@@ -161,7 +168,7 @@
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        height: calc(100vh - 80px); /* Adjust height to account for navbar */
+        margin-bottom: 2rem;
         margin-top: 2rem;
     }
 
@@ -226,14 +233,11 @@
         border-radius: 4px;
     }
 
-    .footer {
-        text-align: center;
-        padding: 1rem;
-        background-color: #8A2BE2;
+    footer {
+        background-color: #9400D3;
         color: white;
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-    }
+        text-align: center;
+        padding: 10px;
+        }
 </style>
 </html>
